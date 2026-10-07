@@ -3752,9 +3752,17 @@ asCScriptNode *asCParser::ParseClass()
 			GetToken(&t);
 		else
 		{
-			Error(TXT_EXPECTED_METHOD_OR_PROPERTY, &t);
-			Error(InsteadFound(t), &t);
-			return node;
+		    Error(TXT_EXPECTED_METHOD_OR_PROPERTY, &t);
+		    Error(InsteadFound(t), &t);
+		    // skip to the end of the class body to avoid a shit ton of cascading errors
+		    int depth = 1;
+		    while (t.type != ttEnd && depth > 0)
+		    {
+		        if (t.type == ttStartStatementBlock) ++depth;
+		        else if (t.type == ttEndStatementBlock) --depth;
+		        if (depth > 0) GetToken(&t);
+		    }
+		    return node;
 		}
 
 		if( isSyntaxError )
